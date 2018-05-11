@@ -1,0 +1,13 @@
+test:
+    host: localhost
+    port: 5432
+    user: postgres
+    dbname: test
+    sslmode: disable
+    statementTimeout: "1s"
+    workers: 5
+    labels:
+        datname: "test"
+    queryFiles:
+        - "basic.yaml"
+        - "pgsettings.yaml"

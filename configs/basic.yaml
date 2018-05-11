@@ -1,0 +1,269 @@
+pg_locks:
+    query: >-
+        select d.datname, lower(m.mode) as mode, coalesce(l.count, 0) as count
+        from (values
+            ('AccessShareLock'),
+            ('RowShareLock'),
+            ('RowExclusiveLock'),
+            ('ShareUpdateExclusiveLock'),
+            ('ShareLock'),
+            ('ShareRowExclusiveLock'),
+            ('ExclusiveLock'),
+            ('AccessExclusiveLock')
+        ) as m(mode)
+        cross join pg_database d
+        left join (select database, mode, count(*) as count
+            from pg_locks
+            where database is not null
+            group by database, mode) l on l.mode = m.mode and l.database = d.oid
+        order by d.datname;
+    metrics:
+        - datname:
+            usage: "LABEL"
+            description: "Name of this database"
+        - mode:
+            usage: "LABEL"
+            description: "Type of lock"
+        - count:
+            usage: "GAUGE"
+            description: "Number of locks"
+
+pg_stat_bgwriter:
+    query: >-
+        select
+            checkpoints_timed, checkpoints_req, checkpoint_write_time, checkpoint_sync_time,
+            buffers_checkpoint, buffers_clean, maxwritten_clean, buffers_backend,
+            buffers_backend_fsync, buffers_alloc, stats_reset
+        from pg_stat_bgwriter
+    metrics:
+        - checkpoints_timed:
+            usage: "COUNTER"
+            description: "Number of scheduled checkpoints that have been performed"
+        - checkpoints_req:
+            usage: "COUNTER"
+            description: "Number of requested checkpoints that have been performed"
+        - checkpoint_write_time:
+            usage: "COUNTER"
+            description: "Total amount of time that has been spent in the portion of checkpoint processing where files are written to disk, in milliseconds"
+        - checkpoint_sync_time:
+            usage: "COUNTER"
+            description: "Total amount of time that has been spent in the portion of checkpoint processing where files are synchronized to disk, in milliseconds"
+        - buffers_checkpoint:
+            usage: "COUNTER"
+            description: "Number of buffers written during checkpoints"
+        - buffers_clean:
+            usage: "COUNTER"
+            description: "Number of buffers written by the background writer"
+        - maxwritten_clean:
+            usage: "COUNTER"
+            description: "Number of times the background writer stopped a cleaning scan because it had written too many buffers"
+        - buffers_backend:
+            usage: "COUNTER"
+            description: "Number of buffers written directly by a backend"
+        - buffers_backend_fsync:
+            usage: "COUNTER"
+            description: "Number of times a backend had to execute its own fsync call (normally the background writer handles those even when the backend does its own write)"
+        - buffers_alloc:
+            usage: "COUNTER"
+            description: "Number of buffers allocated"
+        - stats_reset:
+            usage: "COUNTER"
+            description: "Time at which these statistics were last reset"
+
+pg_stat_database:
+    query: >-
+        select
+            datid, datname, numbackends, xact_commit, xact_rollback,
+            blks_read, blks_hit, tup_returned, tup_fetched,
+            tup_inserted, tup_updated, tup_deleted, conflicts,
+            temp_files, temp_bytes, deadlocks, blk_read_time, blk_write_time, stats_reset
+         from pg_stat_database
+    metrics:
+        - datid:
+            usage: "LABEL"
+            description: "OID of a database"
+        - datname:
+            usage: "LABEL"
+            description: "Name of this database"
+        - numbackends:
+            usage: "COUNTER"
+            description: "Number of backends currently connected to this database. This is the only column in this view that returns a value reflecting current state; all other columns return the accumulated values since the last reset."
+        - xact_commit:
+            usage: "COUNTER"
+            description: "Number of transactions in this database that have been committed"
+        - xact_rollback:
+            usage: "COUNTER"
+            description: "Number of transactions in this database that have been rolled back"
+        - blks_read:
+            usage: "COUNTER"
+            description: "Number of disk blocks read in this database"
+        - blks_hit:
+            usage: "COUNTER"
+            description: "Number of times disk blocks were found already in the buffer cache, so that a read was not necessary (this only includes hits in the PostgreSQL buffer cache, not the operating system's file system cache)"
+        - tup_returned:
+            usage: "COUNTER"
+            description: "Number of rows returned by queries in this database"
+        - tup_fetched:
+            usage: "COUNTER"
+            description: "Number of rows fetched by queries in this database"
+        - tup_inserted:
+            usage: "COUNTER"
+            description: "Number of rows inserted by queries in this database"
+        - tup_updated:
+            usage: "COUNTER"
+            description: "Number of rows updated by queries in this database"
+        - tup_deleted:
+            usage: "COUNTER"
+            description: "Number of rows deleted by queries in this database"
+        - conflicts:
+            usage: "COUNTER"
+            description: "Number of queries canceled due to conflicts with recovery in this database. (Conflicts occur only on standby servers; see pg_stat_database_conflicts for details.)"
+        - temp_files:
+            usage: "COUNTER"
+            description: "Number of temporary files created by queries in this database. All temporary files are counted, regardless of why the temporary file was created (e.g., sorting or hashing), and regardless of the log_temp_files setting."
+        - temp_bytes:
+            usage: "COUNTER"
+            description: "Total amount of data written to temporary files by queries in this database. All temporary files are counted, regardless of why the temporary file was created, and regardless of the log_temp_files setting."
+        - deadlocks:
+            usage: "COUNTER"
+            description: "Number of deadlocks detected in this database"
+        - blk_read_time:
+            usage: "COUNTER"
+            description: "Time spent reading data file blocks by backends in this database, in milliseconds"
+        - blk_write_time:
+            usage: "COUNTER"
+            description: "Time spent writing data file blocks by backends in this database, in milliseconds"
+        - stats_reset:
+            usage: "COUNTER"
+            description: "Time at which these statistics were last reset"
+
+pg_stat_activity:
+    query: >-
+        select
+            d.datname,
+            s.state,
+            coalesce(a.count, 0) as count,
+            coalesce(a.max_tx_duration, 0) as max_tx_duration
+        from (values
+            ('active'),
+            ('idle'),
+            ('idle in transaction'),
+            ('idle in transaction (aborted)'),
+            ('fastpath function call'),
+            ('disabled')
+        ) as s(state)
+        cross join pg_database d
+        left join (
+            select
+                datname,
+                state,
+                count(*) as count,
+                max(extract(epoch from now() - xact_start))::float as max_tx_duration
+            from pg_stat_activity
+            group by datname, state) as a
+        on a.state = s.state and d.datname = a.datname
+    metrics:
+        - datname:
+            usage: "LABEL"
+            description: "Name of this database"
+        - state:
+            usage: "LABEL"
+            description: "Connection state"
+        - count:
+            usage: "GAUGE"
+            description: "Number of connections in this state"
+        - max_tx_duration:
+            usage: "GAUGE"
+            description: "Max duration in seconds any active transaction has been running"
+
+pg_stat_database_conflicts:
+    query: >-
+        select
+            datid,
+            datname,
+            confl_tablespace,
+            confl_lock,
+            confl_snapshot,
+            confl_bufferpin,
+            confl_deadlock
+        from pg_stat_database_conflicts
+    metrics:
+        - datid:
+            usage: "LABEL"
+            description: "OID of a database"
+        - datname:
+            usage: "LABEL"
+            description: "Database name"
+        - confl_tablespace:
+            usage: "COUNTER"
+            description: "Number of queries in this database that have been canceled due to dropped tablespaces"
+        - confl_lock:
+            usage: "COUNTER"
+            description: "Number of queries in this database that have been canceled due to lock timeouts"
+        - confl_snapshot:
+            usage: "COUNTER"
+            description: "Number of queries in this database that have been canceled due to old snapshots"
+        - confl_bufferpin:
+            usage: "COUNTER"
+            description: "Number of queries in this database that have been canceled due to pinned buffers"
+        - confl_deadlock:
+            usage: "COUNTER"
+            description: "Number of queries in this database that have been canceled due to deadlocks"
+
+pg_slots:
+    query:
+        10-: >-
+            select
+            slot_name,
+            slot_type,
+            active,
+            case when not pg_is_in_recovery() then pg_current_wal_lsn() - restart_lsn end as current_lag_bytes
+            from pg_replication_slots s
+            order by s.slot_name
+        9.4-10: >-
+            select
+            slot_name,
+            slot_type,
+            active,
+            case when not pg_is_in_recovery() then pg_current_xlog_location() - restart_lsn end as current_lag_bytes
+            from pg_replication_slots s
+            order by s.slot_name
+    metrics:
+        - slot_name:
+            usage: "LABEL"
+            description: "Slot name"
+        - slot_type:
+            usage: "LABEL"
+            description: "Slot type"
+        - active:
+            usage: "LABEL"
+            description: "Is slot active"
+        - current_lag_bytes:
+            usage: "GAUGE"
+            description: "Lag in bytes"
+
+autovacuum:
+    query: >-
+        select datname, extract(epoch from now() - min(xact_start)) as age, count(*) as cnt
+        from pg_stat_activity
+        where query ~ '^autovacuum: '
+          and state <> 'idle'
+          and pid <> pg_backend_pid()
+        group by 1
+    metrics:
+        - datname:
+            usage: "LABEL"
+            description: "Database name"
+        - age:
+            usage: "GAUGE"
+            description: "Age of the oldest autovacuum process"
+        - cnt:
+            usage: "GAUGE"
+            description: "Number of active autovacuum processes running"
+
+config_time:
+    query: "select round(extract(epoch from pg_conf_load_time()) * 1000) as conf_time"
+    metrics:
+        - conf_time:
+            usage: "GAUGE"
+            description: "Postgresql config load time"

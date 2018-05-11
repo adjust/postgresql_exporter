@@ -1,0 +1,263 @@
+pgtelemetry_vacuum_progress:
+    query: >-
+        select
+            datname,
+            schemaname,
+            relname,
+            phase,
+            heap_blks_total,
+            heap_blks_scanned,
+            heap_blks_vacuumed,
+            index_vacuum_count,
+            max_dead_tuples,
+            num_dead_tuples
+        from pgtelemetry.vacuum_progress()
+
+    metrics:
+        - datname:
+            usage: "LABEL"
+            description: "Database name"
+        - schemaname:
+            usage: "LABEL"
+            description: "Schema name"
+        - relname:
+            usage: "LABEL"
+            description: "Name of the table being vacuumed"
+        - phase:
+            usage: "LABEL"
+            description: "Current processing phase of vacuum"
+        - heap_blks_total:
+            usage: "GAUGE"
+            description: "Total number of heap blocks in the table"
+        - heap_blks_scanned:
+            usage: "GAUGE"
+            description: "Number of heap blocks scanned"
+        - heap_blks_vacuumed:
+            usage: "GAUGE"
+            description: "Number of heap blocks vacuumed"
+        - index_vacuum_count:
+            usage: "GAUGE"
+            description: "Number of completed index vacuum cycles"
+        - max_dead_tuples:
+            usage: "GAUGE"
+            description: "Number of dead tuples that we can store before needing to perform an index vacuum cycle"
+        - num_dead_tuples:
+            usage: "GAUGE"
+            description: "Number of dead tuples collected since the last index vacuum cycle"
+
+pgtelemetry_tablespace_total_size:
+   query:  "select name, bytes from pgtelemetry.tablespace_size"
+   metrics:
+      - name:
+         usage: "LABEL"
+         description:  "Tablespace Name"
+      - bytes:
+         usage: "GAUGE"
+         description: "Size of table, excluding indexes and toast"
+
+usertables_stats:
+    query: >-
+        select
+          sum(n_tup_ins) as ins,
+          sum(n_tup_upd) as upd,
+          sum(n_tup_del) as del,
+          sum(n_tup_hot_upd) as htup_upd,
+          sum(seq_tup_read) as seq_tup_read,
+          sum(idx_tup_fetch) as idx_tup_fetch,
+          sum(seq_scan) as seq_scans,
+          sum(idx_scan) as idx_scans
+        from pg_stat_user_tables
+    metrics:
+        - ins:
+            usage: "COUNTER"
+            description: "Tuples inserted"
+        - upd:
+            usage: "COUNTER"
+            description: "Tuples updated"
+        - del:
+            usage: "COUNTER"
+            description: "Tuples deleted"
+        - htup_upd:
+            usage: "COUNTER"
+            description: "Hot tuples updated"
+        - seq_tup_read:
+            usage: "COUNTER"
+            description: "Tuples sequentially read"
+        - idx_tup_fetch:
+            usage: "COUNTER"
+            description: "Tuples index fetched"
+        - seq_scans:
+            usage: "COUNTER"
+            description: "Sequential scans"
+        - idx_scans:
+            usage: "COUNTER"
+            description: "Index scans"
+
+systables_stats:
+    query: >-
+        select
+          sum(n_tup_ins) as ins,
+          sum(n_tup_upd) as upd,
+          sum(n_tup_del) as del,
+          sum(n_tup_hot_upd) as htup_upd,
+          sum(seq_tup_read) as seq_tup_read,
+          sum(idx_tup_fetch) as idx_tup_fetch,
+          sum(seq_scan) as seq_scans,
+          sum(idx_scan) as idx_scans
+        from pg_stat_sys_tables
+    metrics:
+        - ins:
+            usage: "COUNTER"
+            description: "Tuples inserted"
+        - upd:
+            usage: "COUNTER"
+            description: "Tuples updated"
+        - del:
+            usage: "COUNTER"
+            description: "Tuples deleted"
+        - htup_upd:
+            usage: "COUNTER"
+            description: "Hot tuples updated"
+        - seq_tup_read:
+            usage: "COUNTER"
+            description: "Tuples sequentially read"
+        - idx_tup_fetch:
+            usage: "COUNTER"
+            description: "Tuples index fetched"
+        - seq_scans:
+            usage: "COUNTER"
+            description: "Sequential scans"
+        - idx_scans:
+            usage: "COUNTER"
+            description: "Index scans"
+
+pgtelemetry_catalog_total_size:
+   query:  "select relation, inclusive_bytes, exclusive_bytes from pgtelemetry.catalog_total_size"
+   metrics:
+      - relation:
+         usage: "LABEL"
+         description:  "Table Name"
+      - inclusive_bytes:
+         usage: "GAUGE"
+         description: "Size of table, including indexes and toast"
+      - exclusive_bytes:
+         usage: "GAUGE"
+         description: "Size of table, excluding indexes and toast"
+
+pgtelemetry_database_total_size:
+   query:  "select name, bytes from pgtelemetry.database_size"
+   metrics:
+      - name:
+         usage: "LABEL"
+         description:  "Database Name"
+      - bytes:
+         usage: "GAUGE"
+         description: "Size of table, excluding indexes and toast"
+
+pgtelemetry_connections_by_application:
+   query: >-
+      select application_name, "count"
+      from pgtelemetry.connections_by_application
+      where application_name <> current_setting('application_name')
+   metrics:
+       - application_name:
+          usage: "LABEL"
+          description: "Application name of connections"
+       - count:
+          usage: "GAUGE"
+          description: "Number of connections current"
+
+pgtelemetry_connections_by_state:
+   query: 'select state, "count" from pgtelemetry.connections_by_state'
+   metrics:
+       - state:
+          usage: "LABEL"
+          description: "Query state"
+       - count:
+          usage: "GAUGE"
+          description: "Number of connections current"
+
+pgtelemetry_connections_by_ip_source:
+   query: 'select client_addr, "count" from pgtelemetry.connections_by_ip_source'
+   metrics:
+       - client_addr:
+          usage: "LABEL"
+       - count:
+          usage: "GAUGE"
+          description: "Number of connections current"
+
+pgtelemetry_waiting_connections_by_event_type:
+   query: 'select wait_event_type, "count" from pgtelemetry.waiting_connections_by_event_type'
+   metrics:
+       - wait_event_type:
+          usage: "LABEL"
+          description: "General Reason for Wait"
+       - count:
+          usage: "GAUGE"
+          description: "Number of waiting connections (cluster)"
+
+pgtelemetry_locks_by_type:
+   query: 'select locktype, "count" from pgtelemetry.locks_by_type'
+   metrics:
+       - locktype:
+          usage: "LABEL"
+          description: "Type of lock"
+       - count:
+          usage: "GAUGE"
+          description: "Number of locks (cluster)"
+
+pgtelemetry_locks_by_mode:
+   query: 'select mode, "count" from pgtelemetry.locks_by_mode'
+   metrics:
+       - mode:
+          usage: "LABEL"
+          description: "Lock mode"
+       - count:
+          usage: "GAUGE"
+          description: "Number of locks (cluster)"
+
+
+pgtelemetry_replication_slot_lag:
+   query: "select slot_name, slot_type, current_lag_bytes from pgtelemetry.replication_slot_lag"
+   metrics:
+       - slot_name:
+          usage: "LABEL"
+          description: "Name"
+       - slot_type:
+          usage: "LABEL"
+          description: "Logical or Physical"
+       - current_lag_bytes:
+          usage: "GAUGE"
+          description: "WAL bytes not guaranteed received"
+
+pgtelemetry_wal_telemetry:
+   query: "select now(), bytes_per_sec from (select 1 where not pg_is_in_recovery()) a cross join (select * from pgtelemetry.wal_telemetry()) b"
+   metrics:
+      - now:
+         usage: "LABEL"
+         description: "Time of measurement"
+      - bytes_per_sec:
+         usage: "GAUGE"
+         description: "Bytes per sec to WAL"
+
+transaction_id:
+    query: "select txid_current() as txid where not pg_is_in_recovery()"
+    metrics:
+        - txid:
+            usage: "GAUGE"
+            description: "Transaction ID"
+
+topreventwrar_vacuums:
+    query: >-
+        select
+            count(1) as cnt
+        from
+            pg_stat_activity
+        where
+            state <> 'idle'
+            and pid <> pg_backend_pid()
+            and query ilike '%(to prevent wraparound)%'
+    metrics:
+        - cnt:
+            usage: "GAUGE"
+            description: "Count of prevent wraparound vacuums"
