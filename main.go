@@ -48,7 +48,7 @@ func init() {
 
 func main() {
 	if *showVersion {
-		fmt.Printf("pg-prometheus-exporter %s", version)
+		fmt.Printf("postgresql prometheus exporter %s", version)
 		os.Exit(0)
 	}
 
