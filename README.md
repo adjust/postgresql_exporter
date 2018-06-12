@@ -10,6 +10,7 @@ Prometheus exporter for PostgreSQL metrics.<br>
 - Statement timeouts to cancel long-running queries
 - Version-specific queries in the config file
 - Connection labels
+- No hard-coded metrics
 
 ## Getting and running
 
