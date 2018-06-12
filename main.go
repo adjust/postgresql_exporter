@@ -93,20 +93,7 @@ loop:
 		case syscall.SIGTERM:
 			break loop
 		case syscall.SIGHUP:
-			log.Printf("reloading config")
-			cfg := config.New(*configFile)
-			if err := cfg.Load(); err != nil {
-				log.Printf("could not reload config: %v", err)
-				break
-			}
-			if ok := prometheus.Unregister(collector); !ok {
-				log.Printf("could not unregister collector")
-				break
-			}
-			collector.LoadConfig(cfg)
-			if err := prometheus.Register(collector); err != nil {
-				log.Printf("could not register collector: %v", err)
-			}
+			log.Printf("reloading config. to be implemented")
 		default:
 			log.Printf("received signal: %v", sig)
 		}
