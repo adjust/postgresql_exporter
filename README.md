@@ -34,6 +34,7 @@ Run:
     sslmode: {ssl mode}
     workers: {number of parallel connections to use}
     statementTimeout: {pg statement_timeout value for each connection}
+    skipVersionDetection: {whether perform "show server_version_num" on connect or not; useful while gathering stats of connection poolers}
     labels: 
         {labels added to each metric in the "queryFiles"}
     queryFiles: 
