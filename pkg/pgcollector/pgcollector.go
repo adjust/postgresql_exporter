@@ -222,8 +222,7 @@ func (p *PgCollector) Collect(metricsCh chan<- prometheus.Metric) {
 				log.Fatalf("could not create db instance: %v", err)
 			}
 
-			pgVer, ok := pgVersions[dbInstance]
-			if !ok {
+			if pgVer, ok := pgVersions[dbInstance]; !ok {
 				if dbConf.SkipVersionDetection {
 					pgVer = config.NoVersion
 				} else {
