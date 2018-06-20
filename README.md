@@ -44,15 +44,16 @@ Run:
 
 sample:
 ```
-pg10:
+test:
     host: localhost
     port: 5432
     user: postgres
     dbname: test
     sslmode: disable
     workers: 5
+    statementTimeout: "3s"
     labels:
-        ver: 10
+        production: true
     queryFiles:
         - "basic.yaml"
         - "pertable.yaml"
