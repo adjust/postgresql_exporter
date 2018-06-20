@@ -7,7 +7,7 @@ test:
     statementTimeout: "1s"
     workers: 5
     labels:
-        datname: "test"
+        production: "false"
     queryFiles:
         - "basic.yaml"
         - "pgsettings.yaml"
