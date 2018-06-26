@@ -103,5 +103,4 @@ loop:
 	}
 
 	close(sigs)
-	os.Exit(1)
 }

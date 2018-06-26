@@ -209,6 +209,8 @@ func (p *PgCollector) Collect(metricsCh chan<- prometheus.Metric) {
 
 	dbPool := make(map[string][]db.DbInterface)
 	dbJobs := make(map[string]chan *workerJob)
+
+dbLoop:
 	for _, dbName := range p.config.DbList() {
 		dbConf := p.config.Db(dbName)
 		workersCnt := dbConf.GetWorkers()
@@ -219,7 +221,9 @@ func (p *PgCollector) Collect(metricsCh chan<- prometheus.Metric) {
 		for i := 0; i < workersCnt; i++ {
 			conn, err := db.New(dbConf.ConnectionString())
 			if err != nil {
-				log.Fatalf("could not create db instance: %v", err)
+				log.Printf("could not create db instance: %v", err)
+				atomic.AddUint32(&p.errors, 1)
+				break dbLoop
 			}
 
 			if pgVer, ok := pgVersions[dbInstance]; !ok {
@@ -228,7 +232,9 @@ func (p *PgCollector) Collect(metricsCh chan<- prometheus.Metric) {
 				} else {
 					pgVer, err = conn.PgVersion()
 					if err != nil {
-						log.Fatalf("could not get postgresql version: %v", err)
+						log.Printf("could not get postgresql version: %v", err)
+						atomic.AddUint32(&p.errors, 1)
+						break dbLoop
 					}
 				}
 				pgVersions[dbInstance] = pgVer
@@ -237,6 +243,8 @@ func (p *PgCollector) Collect(metricsCh chan<- prometheus.Metric) {
 			if dbConf.StatementTimeout != 0 {
 				if err := conn.SetStatementTimeout(dbConf.StatementTimeout); err != nil {
 					log.Printf("could not set statement timeout for %s: %v", dbInstance, err)
+					atomic.AddUint32(&p.errors, 1)
+					break dbLoop
 				}
 			}
 
@@ -259,6 +267,10 @@ func (p *PgCollector) Collect(metricsCh chan<- prometheus.Metric) {
 	wg.Wait()
 	for dbName, dbs := range dbPool {
 		for id, dbConn := range dbs {
+			if dbConn == nil {
+				continue
+			}
+
 			if err := dbConn.Close(); err != nil {
 				log.Fatalf("%d: could not close db connection for %q: %v", id, dbName, err)
 			}
