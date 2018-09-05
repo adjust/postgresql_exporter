@@ -181,8 +181,8 @@ func (v VerSQLs) Query(version PgVersion) string {
 	return ""
 }
 
-func parseVersion(str string) PgVersion {
-	var res int
+func ParseVersion(str string) PgVersion {
+	var res = int(NoVersion)
 	matches := pgVerRegex.FindStringSubmatch(str)
 	if matches == nil {
 		return PgVersion(res)
@@ -214,14 +214,14 @@ func parseVersionRange(str string) (PgVersion, PgVersion) {
 
 	parts := strings.Split(str, "-")
 	if len(parts) == 1 {
-		min = parseVersion(parts[0])
+		min = ParseVersion(parts[0])
 		max = min
 	} else {
 		if parts[0] != "" {
-			min = parseVersion(parts[0])
+			min = ParseVersion(parts[0])
 		}
 		if parts[1] != "" {
-			max = parseVersion(parts[1])
+			max = ParseVersion(parts[1])
 		}
 	}
 
@@ -267,8 +267,8 @@ func (c *Config) Load() error {
 		if err := d.LoadQueries(); err != nil {
 			return fmt.Errorf("could not load db queries: %v", err)
 		}
-		if d.Workers <= 0 {
-			d.Workers = 1
+		if d.WorkersNumber <= 0 {
+			d.WorkersNumber = 1
 		}
 
 		dbs[dbName] = d

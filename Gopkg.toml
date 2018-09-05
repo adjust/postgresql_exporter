@@ -26,8 +26,8 @@
 
 
 [[constraint]]
+  name = "github.com/jackc/pgx"
   branch = "master"
-  name = "github.com/lib/pq"
 
 [[constraint]]
   name = "github.com/prometheus/client_golang"

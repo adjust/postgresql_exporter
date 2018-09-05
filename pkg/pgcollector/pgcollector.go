@@ -36,8 +36,7 @@ type PgCollector struct {
 
 type workerJob struct {
 	config.Query
-	dbLabels  map[string]string
-	pgVersion config.PgVersion
+	dbLabels map[string]string
 }
 
 // New create new instance of the PostgreSQL metrics collector
@@ -92,9 +91,10 @@ func (p *PgCollector) worker(conn db.DbInterface, jobs chan *workerJob, res chan
 
 jobs:
 	for job := range jobs {
-		sql := job.VerSQL.Query(job.pgVersion)
+		pgVer := conn.PgVersion()
+		sql := job.VerSQL.Query(pgVer)
 		if sql == "" {
-			log.Printf("could not find proper %q query variant for postgresql version %q", job.Name, job.pgVersion)
+			log.Printf("could not find proper %q query variant for postgresql version %q", job.Name, pgVer)
 			atomic.AddUint32(&p.errors, 1)
 			continue
 		}
@@ -122,7 +122,7 @@ jobs:
 			for _, columnName := range labelColumns {
 				val, ok := db.ToString(row[columnName])
 				if !ok {
-					log.Printf("could not convert metric column value(%v) to string", row[columnName])
+					log.Printf("%q: could not convert metric column value '%[2]v'(%[2]T) to string", job.Name, row[columnName])
 					atomic.AddUint32(&p.errors, 1)
 				}
 				labels[columnName] = val
@@ -132,14 +132,14 @@ jobs:
 			if job.NameColumn != "" {
 				metricName, ok := db.ToString(row[job.NameColumn])
 				if !ok {
-					log.Printf("could not convert %v to string", row[job.NameColumn])
+					log.Printf("%q: could not convert %v to string", job.Name, row[job.NameColumn])
 					atomic.AddUint32(&p.errors, 1)
 					continue jobs
 				}
 
 				m, err := createMetric(job, metricName, constLabels, row[job.ValueColumn])
 				if err != nil {
-					log.Printf("could not create metric: %v", err)
+					log.Printf("%q: could not create metric: %v", job.Name, err)
 					atomic.AddUint32(&p.errors, 1)
 					continue jobs
 				}
@@ -204,61 +204,44 @@ func (p *PgCollector) Collect(metricsCh chan<- prometheus.Metric) {
 	atomic.StoreUint32(&p.timeOuts, 0)
 	atomic.StoreUint32(&p.errors, 0)
 
-	pgVersions := make(map[string]config.PgVersion)
 	wg := &sync.WaitGroup{}
 
 	dbPool := make(map[string][]db.DbInterface)
 	dbJobs := make(map[string]chan *workerJob)
 
-dbLoop:
 	for _, dbName := range p.config.DbList() {
 		dbConf := p.config.Db(dbName)
-		workersCnt := dbConf.GetWorkers()
-		dbInstance := dbConf.InstanceName()
-		dbPool[dbName] = make([]db.DbInterface, workersCnt)
-		dbJobs[dbName] = make(chan *workerJob, workersCnt)
+		workersCnt := dbConf.Workers()
 
+		dbPool[dbName] = make([]db.DbInterface, 0)
 		for i := 0; i < workersCnt; i++ {
-			conn, err := db.New(dbConf.ConnectionString())
+			conn, err := db.New(dbConf)
 			if err != nil {
-				log.Printf("could not create db instance: %v", err)
+				log.Printf("could not create db instance %q: %v", dbName, err)
 				atomic.AddUint32(&p.errors, 1)
-				break dbLoop
+				break
 			}
-
-			if pgVer, ok := pgVersions[dbInstance]; !ok {
-				if dbConf.SkipVersionDetection {
-					pgVer = config.NoVersion
-				} else {
-					pgVer, err = conn.PgVersion()
-					if err != nil {
-						log.Printf("could not get postgresql version: %v", err)
-						atomic.AddUint32(&p.errors, 1)
-						break dbLoop
-					}
-				}
-				pgVersions[dbInstance] = pgVer
-			}
-
 			if dbConf.StatementTimeout != 0 {
 				if err := conn.SetStatementTimeout(dbConf.StatementTimeout); err != nil {
-					log.Printf("could not set statement timeout for %s: %v", dbInstance, err)
+					log.Printf("could not set statement timeout for %s: %v", dbConf.InstanceName(), err)
 					atomic.AddUint32(&p.errors, 1)
-					break dbLoop
+					break
 				}
 			}
 
-			dbPool[dbName][i] = conn
+			dbPool[dbName] = append(dbPool[dbName], conn)
+		}
+		dbJobs[dbName] = make(chan *workerJob, len(dbPool))
 
+		for _, conn := range dbPool[dbName] {
 			wg.Add(1)
 			go p.worker(conn, dbJobs[dbName], metricsCh, wg)
 		}
 
-		for _, query := range dbConf.GetQueries() {
+		for _, query := range dbConf.Queries() {
 			dbJobs[dbName] <- &workerJob{
-				dbLabels:  dbConf.GetLabels(),
-				Query:     query,
-				pgVersion: pgVersions[dbInstance],
+				dbLabels: dbConf.Labels(),
+				Query:    query,
 			}
 		}
 		close(dbJobs[dbName])
@@ -282,7 +265,7 @@ dbLoop:
 func (p *PgCollector) Describe(ch chan<- *prometheus.Desc) {
 	for _, dbName := range p.config.DbList() {
 		dbConf := p.config.Db(dbName)
-		for _, query := range dbConf.GetQueries() {
+		for _, query := range dbConf.Queries() {
 			for metricName, metric := range query.Metrics {
 				if metric.Usage == config.Label ||
 					metric.Usage == config.Discard {

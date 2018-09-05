@@ -15,18 +15,28 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/lib/pq"
+  name = "github.com/jackc/pgx"
   packages = [
     ".",
-    "oid"
+    "chunkreader",
+    "internal/sanitize",
+    "pgio",
+    "pgproto3",
+    "pgtype"
   ]
-  revision = "d34b9ff171c21ad295489235aec8b6626023cd04"
+  revision = "e44f0f24c4bb7e7fcfaa6057497e0a61d27d5eac"
 
 [[projects]]
   name = "github.com/matttproud/golang_protobuf_extensions"
   packages = ["pbutil"]
-  revision = "3247c84500bff8d9fb6d579d800f20b3e091582c"
-  version = "v1.0.0"
+  revision = "c12348ce28de40eed0136aa2b644d0ee0650e56c"
+  version = "v1.0.1"
+
+[[projects]]
+  name = "github.com/pkg/errors"
+  packages = ["."]
+  revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
+  version = "v0.8.0"
 
 [[projects]]
   name = "github.com/prometheus/client_golang"
@@ -51,7 +61,7 @@
     "internal/bitbucket.org/ww/goautoneg",
     "model"
   ]
-  revision = "d811d2e9bf898806ecfb6ef6296774b13ffc314c"
+  revision = "7600349dcfe1abd18d72d3a1770870d9800a7801"
 
 [[projects]]
   branch = "master"
@@ -62,7 +72,7 @@
     "nfs",
     "xfs"
   ]
-  revision = "8b1c2da0d56deffdbb9e48d4414b4e674bd8083e"
+  revision = "40f013a808ec4fa79def444a1a56de4d1727efcb"
 
 [[projects]]
   name = "gopkg.in/yaml.v2"
@@ -73,6 +83,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "afad85bfb1545aa4f388a0c078c982a8af145bf2fe46546b1232e96928794012"
+  inputs-digest = "299b6ba95021ae8533a3b171b0d233ce106a237146521e0628ce1261ba84d793"
   solver-name = "gps-cdcl"
   solver-version = 1

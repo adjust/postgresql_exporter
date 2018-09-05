@@ -13,26 +13,26 @@ const applicationName = "pg_prometheus_exporter"
 
 // DbConfigInterface describes DbConfig methods
 type DbConfigInterface interface {
-	GetWorkers() int
-	GetQueries() []Query
-	ConnectionString() string
+	Workers() int
+	Queries() []Query
 	InstanceName() string
-	GetLabels() map[string]string
+	Labels() map[string]string
+	ApplicationName() string
 }
 
 // DbConfig describes database to get metrics from
 type DbConfig struct {
-	Host                 string            `yaml:"host"`
-	Port                 int               `yaml:"port"`
-	User                 string            `yaml:"user"`
-	Password             string            `yaml:"password"`
-	Dbname               string            `yaml:"dbname"`
-	Sslmode              string            `yaml:"sslmode"`
-	QueryFiles           []string          `yaml:"queryFiles"`
-	Labels               map[string]string `yaml:"labels"`
-	Workers              int               `yaml:"workers"`
-	SkipVersionDetection bool              `yaml:"skipVersionDetection"`
-	StatementTimeout     time.Duration     `yaml:"statementTimeout"`
+	Host             string            `yaml:"host"`
+	Port             uint16            `yaml:"port"`
+	User             string            `yaml:"user"`
+	Password         string            `yaml:"password"`
+	Dbname           string            `yaml:"dbname"`
+	Sslmode          string            `yaml:"sslmode"`
+	QueryFiles       []string          `yaml:"queryFiles"`
+	LabelsMap        map[string]string `yaml:"labels"`
+	WorkersNumber    int               `yaml:"workers"`
+	StatementTimeout time.Duration     `yaml:"statementTimeout"`
+	IsNotPg          bool              `yaml:"isNotPg"`
 
 	queries []Query
 }
@@ -65,28 +65,26 @@ func (d *DbConfig) LoadQueries() error {
 	return nil
 }
 
-// ConnectionString returns connection string
-func (d *DbConfig) ConnectionString() string {
-	return fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s&fallback_application_name=%s",
-		d.User, d.Password, d.Host, d.Port, d.Dbname, d.Sslmode, applicationName)
-}
-
 // InstanceName returns instance name
 func (d *DbConfig) InstanceName() string {
 	return fmt.Sprintf("%s:%d", d.Host, d.Port)
 }
 
-// GetWorkers returns number of workers for the db
-func (d *DbConfig) GetWorkers() int {
-	return d.Workers
+// Workers returns number of workers for the db
+func (d *DbConfig) Workers() int {
+	return d.WorkersNumber
 }
 
-// GetQueries returns db queries
-func (d *DbConfig) GetQueries() []Query {
+// Queries returns db queries
+func (d *DbConfig) Queries() []Query {
 	return d.queries
 }
 
-// GetLabels returns db labels
-func (d *DbConfig) GetLabels() map[string]string {
-	return d.Labels
+// Labels returns db labels
+func (d *DbConfig) Labels() map[string]string {
+	return d.LabelsMap
+}
+
+func (d *DbConfig) ApplicationName() string {
+	return applicationName
 }
