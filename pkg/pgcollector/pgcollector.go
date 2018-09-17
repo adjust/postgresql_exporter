@@ -239,9 +239,11 @@ func (p *PgCollector) Collect(metricsCh chan<- prometheus.Metric) {
 		}
 
 		for _, query := range dbConf.Queries() {
-			dbJobs[dbName] <- &workerJob{
-				dbLabels: dbConf.Labels(),
-				Query:    query,
+			if len(dbPool[dbName]) > 0 {
+				dbJobs[dbName] <- &workerJob{
+					dbLabels: dbConf.Labels(),
+					Query:    query,
+				}
 			}
 		}
 		close(dbJobs[dbName])
