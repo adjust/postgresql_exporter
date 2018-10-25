@@ -21,7 +21,7 @@ Get:
 
 Run:
 ```
-    postgresql_exporter --config {path to config file}
+    postgresql_exporter --config {path to the config file}
 ```
 
 
@@ -35,7 +35,7 @@ Run:
     sslmode: {ssl mode}
     workers: {number of parallel connections to use}
     statementTimeout: {pg statement_timeout value for each connection}
-    isNotPg: {true if the destination side is not postgresql}
+    isNotPg: {true if the destination side is not postgresql (e.g. pgbouncer/odyssey)}
     labels:
         {labels added to each metric in the "queryFiles"}
     queryFiles: 
