@@ -4,7 +4,7 @@ pg_settings:
             select
                 replace(case
                     when unit in ('ms', 's', 'min', 'h', 'd') then name || '_seconds'
-                    when unit in ('kB', 'MB', 'GB', 'TB', '8kB', '16kB', '32kB', '16MB', '32MB', '64MB') then name || '_bytes'
+                    when unit in ('B', 'kB', 'MB', 'GB', 'TB', '8kB', '16kB', '32kB', '16MB', '32MB', '64MB') then name || '_bytes'
                 else
                     name
                 end, '.', '_') as name,
@@ -15,6 +15,7 @@ pg_settings:
                     when 'h' then setting::numeric * 3600
                     when 'd' then setting::numeric * 86400
 
+                    when 'B' then setting::numeric
                     when 'kB' then setting::numeric * 1024
                     when 'MB' then setting::numeric * 1048576
                     when 'GB' then setting::numeric * 1073741824
@@ -38,7 +39,7 @@ pg_settings:
             select
                 replace(case
                     when unit in ('ms', 's', 'min', 'h', 'd') then name || '_seconds'
-                    when unit in ('kB', 'MB', 'GB', 'TB', '8kB', '16kB', '32kB', '16MB', '32MB', '64MB') then name || '_bytes'
+                    when unit in ('B', 'kB', 'MB', 'GB', 'TB', '8kB', '16kB', '32kB', '16MB', '32MB', '64MB') then name || '_bytes'
                 else
                     name
                 end, '.', '_') as name,
@@ -49,6 +50,7 @@ pg_settings:
                     when 'h' then setting::numeric * 3600
                     when 'd' then setting::numeric * 86400
 
+                    when 'B' then setting::numeric
                     when 'kB' then setting::numeric * 1024
                     when 'MB' then setting::numeric * 1048576
                     when 'GB' then setting::numeric * 1073741824

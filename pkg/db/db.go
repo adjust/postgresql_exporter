@@ -162,8 +162,8 @@ func ToFloat64(t interface{}) (float64, error) {
 	var res float64
 	switch v := t.(type) {
 	case *pgtype.Numeric:
-		v.AssignTo(&res)
-		return res, nil
+		err := v.AssignTo(&res)
+		return res, err
 	case int8:
 		return float64(v), nil
 	case int32:

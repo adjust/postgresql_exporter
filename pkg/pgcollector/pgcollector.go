@@ -85,9 +85,7 @@ func createMetric(job *workerJob, name string, constLabels prometheus.Labels, ra
 }
 
 func (p *PgCollector) worker(conn db.DbInterface, jobs chan *workerJob, res chan<- prometheus.Metric, wg *sync.WaitGroup) {
-	defer func() {
-		wg.Done()
-	}()
+	defer wg.Done()
 
 jobs:
 	for job := range jobs {
@@ -231,7 +229,7 @@ func (p *PgCollector) Collect(metricsCh chan<- prometheus.Metric) {
 
 			dbPool[dbName] = append(dbPool[dbName], conn)
 		}
-		dbJobs[dbName] = make(chan *workerJob, len(dbPool))
+		dbJobs[dbName] = make(chan *workerJob, len(dbPool[dbName]))
 
 		for _, conn := range dbPool[dbName] {
 			wg.Add(1)
