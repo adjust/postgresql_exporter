@@ -9,8 +9,8 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/ikitiki/postgresql_exporter/pkg/config"
-	"github.com/ikitiki/postgresql_exporter/pkg/db"
+	"github.com/mkabilov/postgresql_exporter/pkg/config"
+	"github.com/mkabilov/postgresql_exporter/pkg/db"
 )
 
 const (

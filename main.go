@@ -13,8 +13,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	"github.com/ikitiki/postgresql_exporter/pkg/config"
-	"github.com/ikitiki/postgresql_exporter/pkg/pgcollector"
+	"github.com/mkabilov/postgresql_exporter/pkg/config"
+	"github.com/mkabilov/postgresql_exporter/pkg/pgcollector"
 )
 
 const (
