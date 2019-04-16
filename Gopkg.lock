@@ -2,19 +2,18 @@
 
 
 [[projects]]
-  branch = "master"
   name = "github.com/beorn7/perks"
   packages = ["quantile"]
-  revision = "3a771d992973f24aa725d07868b467d1ddfceafb"
+  revision = "4b2b341e8d7715fae06375aa633dbb6e91b3fb46"
+  version = "v1.0.0"
 
 [[projects]]
   name = "github.com/golang/protobuf"
   packages = ["proto"]
-  revision = "b4deda0973fb4c70b50d226b1af49f3da59f5265"
-  version = "v1.1.0"
+  revision = "b5d812f8a3706043e23a9cd5babf2e5423744d30"
+  version = "v1.3.1"
 
 [[projects]]
-  branch = "master"
   name = "github.com/jackc/pgx"
   packages = [
     ".",
@@ -24,7 +23,8 @@
     "pgproto3",
     "pgtype"
   ]
-  revision = "e44f0f24c4bb7e7fcfaa6057497e0a61d27d5eac"
+  revision = "c59c9cac59ab95eceb0c12ff338923c62f411ea2"
+  version = "v3.3.0"
 
 [[projects]]
   name = "github.com/matttproud/golang_protobuf_extensions"
@@ -35,54 +35,50 @@
 [[projects]]
   name = "github.com/pkg/errors"
   packages = ["."]
-  revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
-  version = "v0.8.0"
+  revision = "ba968bfe8b2f7e042a574c888954fccecfa385b4"
+  version = "v0.8.1"
 
 [[projects]]
   name = "github.com/prometheus/client_golang"
   packages = [
     "prometheus",
+    "prometheus/internal",
     "prometheus/promhttp"
   ]
-  revision = "c5b7fccd204277076155f10851dad72b76a49317"
-  version = "v0.8.0"
+  revision = "505eaef017263e299324067d40ca2c48f6a2cf50"
+  version = "v0.9.2"
 
 [[projects]]
   branch = "master"
   name = "github.com/prometheus/client_model"
   packages = ["go"]
-  revision = "99fa1f4be8e564e8a6b613da7fa6f46c9edafc6c"
+  revision = "fd36f4220a901265f90734c3183c5f0c91daa0b8"
 
 [[projects]]
-  branch = "master"
   name = "github.com/prometheus/common"
   packages = [
     "expfmt",
     "internal/bitbucket.org/ww/goautoneg",
     "model"
   ]
-  revision = "7600349dcfe1abd18d72d3a1770870d9800a7801"
+  revision = "a82f4c12f983cc2649298185f296632953e50d3e"
+  version = "v0.3.0"
 
 [[projects]]
   branch = "master"
   name = "github.com/prometheus/procfs"
-  packages = [
-    ".",
-    "internal/util",
-    "nfs",
-    "xfs"
-  ]
-  revision = "40f013a808ec4fa79def444a1a56de4d1727efcb"
+  packages = ["."]
+  revision = "8368d24ba045f26503eb745b624d930cbe214c79"
 
 [[projects]]
   name = "gopkg.in/yaml.v2"
   packages = ["."]
-  revision = "5420a8b6744d3b0345ab293f6fcba19c978f1183"
-  version = "v2.2.1"
+  revision = "51d6538a90f86fe93ac480b35f37b2be17fef232"
+  version = "v2.2.2"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "299b6ba95021ae8533a3b171b0d233ce106a237146521e0628ce1261ba84d793"
+  inputs-digest = "c2130413789c3778f9826b12dee9d54165eb9922bb6e0776717856730a2a91b1"
   solver-name = "gps-cdcl"
   solver-version = 1

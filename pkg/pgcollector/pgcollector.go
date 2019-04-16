@@ -29,7 +29,7 @@ var internalMetricsDescriptions = map[string]string{
 // PgCollector describes PostgreSQL metrics collector
 type PgCollector struct {
 	sync.Mutex
-	config   config.ConfigInterface
+	config   config.Interface
 	timeOuts uint32
 	errors   uint32
 }

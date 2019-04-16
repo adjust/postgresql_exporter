@@ -32,8 +32,8 @@ var (
 	}
 )
 
-// ConfigInterface describes Config methods
-type ConfigInterface interface {
+// Interface describes Config methods
+type Interface interface {
 	Load() error
 	DbList() []string
 	Db(string) DbConfig
@@ -113,7 +113,10 @@ func (v *VerSQLs) UnmarshalYAML(unmarshal func(interface{}) error) error {
 // UnmarshalYAML unmarshals the yaml
 func (c *ColumnUsage) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	var value string
-	unmarshal(&value)
+	if err := unmarshal(&value); err != nil {
+		return err
+	}
+
 	cu, ok := columnUsageMapping[value]
 	if !ok {
 		return fmt.Errorf("unknown usage: %v", value)
@@ -182,28 +185,29 @@ func (v VerSQLs) Query(version PgVersion) string {
 }
 
 func ParseVersion(str string) PgVersion {
-	var res = int(NoVersion)
 	matches := pgVerRegex.FindStringSubmatch(str)
 	if matches == nil {
-		return PgVersion(res)
+		return NoVersion
 	}
+
+	ver := 0
 	if matches[1] != "" {
 		val, _ := strconv.Atoi(matches[1])
-		res = val * 10000
+		ver = val * 10000
 		if val > 9 && matches[2] != "" {
 			val, _ := strconv.Atoi(matches[2])
-			res += val
+			ver += val
 		} else if matches[2] != "" {
 			val, _ := strconv.Atoi(matches[2])
-			res += val * 100
+			ver += val * 100
 			if matches[3] != "" {
 				val, _ := strconv.Atoi(matches[3])
-				res += val
+				ver += val
 			}
 		}
 	}
 
-	return PgVersion(res)
+	return PgVersion(ver)
 }
 
 func parseVersionRange(str string) (PgVersion, PgVersion) {
