@@ -12,7 +12,7 @@ import (
 	"github.com/jackc/pgx"
 	"github.com/jackc/pgx/pgtype"
 
-	"github.com/mkabilov/postgresql_exporter/pkg/config"
+	"github.com/adjust/postgresql_exporter/pkg/config"
 )
 
 //DbInterface describes Db methods
