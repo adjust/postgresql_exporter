@@ -1,6 +1,4 @@
 # PostgreSQL Metrics Exporter
-[![Go Report Card](https://goreportcard.com/badge/github.com/mkabilov/postgresql_exporter)](https://goreportcard.com/report/github.com/mkabilov/postgresql_exporter)
-
 
 Prometheus exporter for PostgreSQL metrics.<br>
 
@@ -16,7 +14,7 @@ Prometheus exporter for PostgreSQL metrics.<br>
 
 Get:
 ```
-    go get -u github.com/mkabilov/postgresql_exporter
+    go get -u github.com/adjust/postgresql_exporter
 ```
 
 Run:
