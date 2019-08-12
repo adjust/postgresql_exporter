@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -18,7 +19,8 @@ import (
 )
 
 const (
-	indexHTML = `
+	shutdownTimeout = 10 * time.Second
+	indexHTML       = `
 <html>
 	<head>
 		<title>Postgresql Exporter</title>
@@ -56,7 +58,9 @@ func main() {
 	if err := cfg.Load(); err != nil {
 		log.Fatalf("could not load config: %v", err)
 	}
-	collector := pgcollector.New()
+	ctx, cancel := context.WithCancel(context.Background())
+
+	collector := pgcollector.New(ctx)
 	collector.LoadConfig(cfg)
 
 	if err := prometheus.Register(collector); err != nil {
@@ -98,7 +102,10 @@ loop:
 			log.Printf("received signal: %v", sig)
 		}
 	}
-	if err := srv.Shutdown(context.Background()); err != nil {
+	cancel()
+
+	shutdownCtx, _ := context.WithTimeout(context.Background(), shutdownTimeout)
+	if err := srv.Shutdown(shutdownCtx); err != nil {
 		log.Printf("could not shutdown http server: %v", err)
 	}
 

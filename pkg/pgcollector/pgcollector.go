@@ -1,6 +1,7 @@
 package pgcollector
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"sync"
@@ -32,6 +33,7 @@ type PgCollector struct {
 	config   config.Interface
 	timeOuts uint32
 	errors   uint32
+	ctx      context.Context
 }
 
 type workerJob struct {
@@ -40,8 +42,10 @@ type workerJob struct {
 }
 
 // New create new instance of the PostgreSQL metrics collector
-func New() *PgCollector {
-	return &PgCollector{}
+func New(ctx context.Context) *PgCollector {
+	return &PgCollector{
+		ctx: ctx,
+	}
 }
 
 // LoadConfig loads config
@@ -84,7 +88,7 @@ func createMetric(job *workerJob, name string, constLabels prometheus.Labels, ra
 	return nil, nil
 }
 
-func (p *PgCollector) worker(conn db.DbInterface, jobs chan *workerJob, res chan<- prometheus.Metric, wg *sync.WaitGroup) {
+func (p *PgCollector) worker(conn db.Interface, jobs chan *workerJob, res chan<- prometheus.Metric, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 jobs:
@@ -204,16 +208,16 @@ func (p *PgCollector) Collect(metricsCh chan<- prometheus.Metric) {
 
 	wg := &sync.WaitGroup{}
 
-	dbPool := make(map[string][]db.DbInterface)
+	dbPool := make(map[string][]db.Interface)
 	dbJobs := make(map[string]chan *workerJob)
 
 	for _, dbName := range p.config.DbList() {
 		dbConf := p.config.Db(dbName)
 		workersCnt := dbConf.Workers()
 
-		dbPool[dbName] = make([]db.DbInterface, 0)
+		dbPool[dbName] = make([]db.Interface, 0)
 		for i := 0; i < workersCnt; i++ {
-			conn, err := db.New(dbConf)
+			conn, err := db.New(p.ctx, dbConf)
 			if err != nil {
 				log.Printf("could not create db instance %q: %v", dbName, err)
 				atomic.AddUint32(&p.errors, 1)

@@ -15,8 +15,8 @@ import (
 	"github.com/adjust/postgresql_exporter/pkg/config"
 )
 
-//DbInterface describes Db methods
-type DbInterface interface {
+//Interface describes Db methods
+type Interface interface {
 	SetStatementTimeout(time.Duration) error
 	Exec(string) ([]map[string]interface{}, error)
 	PgVersion() config.PgVersion
@@ -30,12 +30,13 @@ var ErrQueryTimeout = errors.New("canceled due to statement timeout")
 
 // Db describes database
 type Db struct {
+	ctx     context.Context
 	version config.PgVersion
 	db      *pgx.Conn
 }
 
 // New creates new instance of database connection
-func New(dbConfig config.DbConfig) (*Db, error) {
+func New(ctx context.Context, dbConfig config.DbConfig) (*Db, error) {
 	var version config.PgVersion
 
 	cfg := pgx.ConnConfig{
@@ -76,10 +77,6 @@ func New(dbConfig config.DbConfig) (*Db, error) {
 		version = config.NoVersion
 	}
 
-	if err != nil {
-		return nil, fmt.Errorf("could not open connection: %v", err)
-	}
-
 	if !dbConfig.IsNotPg {
 		if err := dbConn.Ping(context.Background()); err != nil {
 			return nil, fmt.Errorf("could not ping db: %v", err)
@@ -87,6 +84,7 @@ func New(dbConfig config.DbConfig) (*Db, error) {
 	}
 
 	return &Db{
+		ctx:     ctx,
 		db:      dbConn,
 		version: version,
 	}, nil
@@ -96,7 +94,7 @@ func New(dbConfig config.DbConfig) (*Db, error) {
 func (d *Db) Exec(query string) ([]map[string]interface{}, error) {
 	values := make([]map[string]interface{}, 0)
 
-	rows, err := d.db.Query(query)
+	rows, err := d.db.QueryEx(d.ctx, query, nil)
 	if err != nil {
 		return nil, fmt.Errorf("query error: %v", err)
 	}
